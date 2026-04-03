@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KittyCrew</title>
+    <link rel="icon" href="/static/avatars/banner-cat.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero-banner">
+        <div class="hero-copy">
+          <p class="hero-kicker">A2A-powered cat squad scheduler</p>
+          <h1>Kitty Crew</h1>
+          <p class="hero-body">
+            Build little bands of Claude Code, Codex, and GitHub Copilot sessions, then chat with each member inside one candy-soft control room.
+          </p>
+        </div>
+
+        <div class="hero-cat-wrap" aria-hidden="true">
+          <div class="hero-cat-card">
+            <img src="/static/avatars/banner-cat.svg" alt="Kitty Crew mascot" class="hero-cat" />
+          </div>
+        </div>
+
+        <div class="hero-meta">
+          <span class="hero-signature">Jimmy Ye</span>
+        </div>
+      </header>
+
+      <main class="app-layout">
+        <section id="crew-list" class="crew-stack" aria-live="polite"></section>
+
+        <section class="add-crew-panel">
+          <button id="add-crew-button" class="fab-plus" type="button" aria-label="Add a crew">+</button>
+          <p class="add-crew-title">Summon a new crew</p>
+          <p class="add-crew-copy">
+            Start with an empty crew, then add up to five cat-powered members inside it.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <div id="member-modal" class="modal-shell is-hidden" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal="member" aria-label="Close member modal">x</button>
+        <p class="modal-kicker">Choose member setup</p>
+        <h2 id="member-modal-title" class="modal-title">Add a crew member</h2>
+        <p class="modal-copy">
+          Creating a member also creates its session. Provider type is fixed after creation, while work directory and skill are saved with the member.
+        </p>
+        <div id="provider-options" class="provider-grid"></div>
+        <div class="member-create-form">
+          <label class="modal-field">
+            <span>Working directory</span>
+            <input id="member-working-dir" type="text" placeholder="/path/to/workspace" />
+          </label>
+          <div class="modal-field">
+            <span>Skills</span>
+            <div id="member-create-selected" class="selected-skill-list"></div>
+            <div id="member-skill-options" class="skill-option-list"></div>
+          </div>
+          <label class="modal-field">
+            <span>Custom skill name or path</span>
+            <input id="member-skill-custom" type="text" placeholder="Optional: skill name or /path/to/SKILL.md" />
+          </label>
+          <button id="member-skill-add-button" class="icon-chip icon-chip--soft" type="button">Add custom skill</button>
+          <button id="member-create-button" class="member-create-button" type="button">Create member</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="skill-modal" class="modal-shell is-hidden" role="dialog" aria-modal="true" aria-labelledby="skill-modal-title">
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal="skill" aria-label="Close skill modal">x</button>
+        <p class="modal-kicker">Manage member skills</p>
+        <h2 id="skill-modal-title" class="modal-title">Member skills</h2>
+        <p class="modal-copy">Only the skills selected here are available to this member.</p>
+        <div id="member-skill-selected" class="selected-skill-list"></div>
+        <div class="modal-field">
+          <span>Available skills</span>
+          <div id="skill-modal-options" class="skill-option-list"></div>
+        </div>
+        <label class="modal-field">
+          <span>Add custom skill name or path</span>
+          <input id="skill-modal-custom" type="text" placeholder="Optional: skill name or /path/to/SKILL.md" />
+        </label>
+        <div class="skill-modal-actions">
+          <button id="skill-modal-add-button" class="icon-chip icon-chip--soft" type="button">Add custom skill</button>
+          <button id="skill-modal-save-button" class="member-create-button" type="button">Save skills</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="avatar-modal" class="modal-shell is-hidden" role="dialog" aria-modal="true" aria-labelledby="avatar-modal-title">
+      <div class="modal-card modal-card--avatar">
+        <button class="modal-close" type="button" data-close-modal="avatar" aria-label="Close avatar modal">x</button>
+        <p class="modal-kicker">Pick a cat</p>
+        <h2 id="avatar-modal-title" class="modal-title">Change member avatar</h2>
+        <p class="modal-copy">Each teammate can wear a different kitty face.</p>
+        <div id="avatar-options" class="avatar-grid"></div>
+      </div>
+    </div>
+
+    <div id="expanded-member-modal" class="modal-shell is-hidden" role="dialog" aria-modal="true" aria-labelledby="expanded-member-title">
+      <div class="modal-card modal-card--member">
+        <button class="modal-close" type="button" data-close-modal="expanded-member" aria-label="Close expanded member modal">x</button>
+        <p class="modal-kicker">Focused teammate view</p>
+        <h2 id="expanded-member-title" class="modal-title">Member detail</h2>
+        <p class="modal-copy">Use the enlarged card to chat, change the model, manage skills, or update the avatar without the compact strip constraints.</p>
+        <div id="expanded-member-content"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>
