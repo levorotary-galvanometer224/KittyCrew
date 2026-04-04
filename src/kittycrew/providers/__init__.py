@@ -7,6 +7,8 @@ from kittycrew.providers.base import ProviderAdapter
 from kittycrew.providers.claude_code import ClaudeCodeAdapter
 from kittycrew.providers.codex import CodexAdapter
 from kittycrew.providers.github_copilot import GitHubCopilotAdapter
+from kittycrew.providers.kimi import KimiAdapter
+from kittycrew.providers.opencode import OpenCodeAdapter
 
 
 class ProviderRegistry:
@@ -29,5 +31,7 @@ def build_provider_registry(project_root: Path) -> ProviderRegistry:
             ProviderType.CLAUDE_CODE: ClaudeCodeAdapter(project_root),
             ProviderType.CODEX: CodexAdapter(project_root),
             ProviderType.GITHUB_COPILOT: GitHubCopilotAdapter(project_root),
+            ProviderType.KIMI: KimiAdapter(project_root),
+            ProviderType.OPENCODE: OpenCodeAdapter(project_root),
         }
     )

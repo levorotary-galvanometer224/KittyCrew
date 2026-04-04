@@ -31,6 +31,10 @@
         </div>
       </header>
 
+      <section class="settings-bar">
+        <button id="global-settings-button" class="settings-trigger" type="button">Global settings</button>
+      </section>
+
       <main class="app-layout">
         <section id="crew-list" class="crew-stack" aria-live="polite"></section>
 
@@ -55,19 +59,29 @@
         <div id="provider-options" class="provider-grid"></div>
         <div class="member-create-form">
           <label class="modal-field">
+            <span>Member name</span>
+            <input id="member-title" type="text" placeholder="Cat teammate name" maxlength="80" />
+          </label>
+          <label class="modal-field">
             <span>Working directory</span>
             <input id="member-working-dir" type="text" placeholder="/path/to/workspace" />
           </label>
           <div class="modal-field">
             <span>Skills</span>
             <div id="member-create-selected" class="selected-skill-list"></div>
-            <div id="member-skill-options" class="skill-option-list"></div>
+            <div class="skill-picker">
+              <input
+                id="member-skill-custom"
+                type="text"
+                placeholder="Search allowed global skills"
+                autocomplete="off"
+              />
+              <div id="member-skill-options" class="skill-suggestion-list"></div>
+              <div class="skill-picker-actions">
+                <button id="member-skill-add-button" class="icon-chip icon-chip--soft" type="button">Add skill</button>
+              </div>
+            </div>
           </div>
-          <label class="modal-field">
-            <span>Custom skill name or path</span>
-            <input id="member-skill-custom" type="text" placeholder="Optional: skill name or /path/to/SKILL.md" />
-          </label>
-          <button id="member-skill-add-button" class="icon-chip icon-chip--soft" type="button">Add custom skill</button>
           <button id="member-create-button" class="member-create-button" type="button">Create member</button>
         </div>
       </div>
@@ -82,15 +96,53 @@
         <div id="member-skill-selected" class="selected-skill-list"></div>
         <div class="modal-field">
           <span>Available skills</span>
-          <div id="skill-modal-options" class="skill-option-list"></div>
+          <div class="skill-picker">
+            <input
+              id="skill-modal-custom"
+              type="text"
+              placeholder="Search allowed global skills"
+              autocomplete="off"
+            />
+            <div id="skill-modal-options" class="skill-suggestion-list"></div>
+          </div>
         </div>
-        <label class="modal-field">
-          <span>Add custom skill name or path</span>
-          <input id="skill-modal-custom" type="text" placeholder="Optional: skill name or /path/to/SKILL.md" />
-        </label>
         <div class="skill-modal-actions">
-          <button id="skill-modal-add-button" class="icon-chip icon-chip--soft" type="button">Add custom skill</button>
+          <button id="skill-modal-add-button" class="icon-chip icon-chip--soft" type="button">Add skill</button>
           <button id="skill-modal-save-button" class="member-create-button" type="button">Save skills</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="global-settings-modal" class="modal-shell is-hidden" role="dialog" aria-modal="true" aria-labelledby="global-settings-title">
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal="global-settings" aria-label="Close global settings modal">x</button>
+        <p class="modal-kicker">System-wide defaults</p>
+        <h2 id="global-settings-title" class="modal-title">Global settings</h2>
+        <p class="modal-copy">
+          Choose a site theme and define the global skill pool. Member creation and member skill editing can only use the selected global skills.
+        </p>
+        <div class="modal-field">
+          <span>Site theme</span>
+          <div id="theme-options" class="theme-option-grid"></div>
+        </div>
+        <div class="modal-field">
+          <span>Global skills</span>
+          <div id="global-skill-selected" class="selected-skill-list"></div>
+          <div class="skill-picker">
+            <input
+              id="global-skill-custom"
+              type="text"
+              placeholder="Search all discovered system skills"
+              autocomplete="off"
+            />
+            <div id="global-skill-options" class="skill-suggestion-list"></div>
+            <div class="skill-picker-actions">
+              <button id="global-skill-add-button" class="icon-chip icon-chip--soft" type="button">Add skill</button>
+            </div>
+          </div>
+        </div>
+        <div class="skill-modal-actions">
+          <button id="global-settings-save-button" class="member-create-button" type="button">Save settings</button>
         </div>
       </div>
     </div>

@@ -7,6 +7,14 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+SUPPORTED_SITE_THEMES = (
+    "candy-soft",
+    "sunset-pop",
+    "mint-garden",
+    "midnight-ink",
+    "peach-cream",
+)
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -16,6 +24,8 @@ class ProviderType(str, Enum):
     CLAUDE_CODE = "claude_code"
     CODEX = "codex"
     GITHUB_COPILOT = "github_copilot"
+    KIMI = "kimi"
+    OPENCODE = "opencode"
 
 
 class MemberStatus(str, Enum):
@@ -36,8 +46,8 @@ class AgentSession(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     provider: ProviderType
     created_at: str = Field(default_factory=utc_now)
-    workspace_dir: str
-    working_dir: str | None = None
+    working_dir: str
+    member_title: str | None = None
     config_dir: str | None = None
     native_session_id: str | None = None
     model_id: str | None = None
@@ -67,6 +77,8 @@ class Crew(BaseModel):
 
 class AppState(BaseModel):
     crews: list[Crew] = Field(default_factory=list)
+    site_theme: str = "candy-soft"
+    global_skills: list["SkillOption"] = Field(default_factory=list)
 
 
 class AvatarDefinition(BaseModel):
@@ -100,11 +112,13 @@ class AppBootstrap(BaseModel):
     avatars: list[AvatarDefinition]
     providers: list[ProviderDefinition]
     skills: list[SkillOption] = Field(default_factory=list)
+    member_name_candidates: list[str] = Field(default_factory=list)
     project_root: str | None = None
 
 
 class CreateMemberRequest(BaseModel):
     provider: ProviderType
+    title: str | None = None
     working_dir: str | None = None
     skill_references: list[str] = Field(default_factory=list)
     skill_reference: str | None = None
@@ -132,6 +146,11 @@ class UpdateMemberModelRequest(BaseModel):
 
 class UpdateMemberSkillsRequest(BaseModel):
     skill_references: list[str] = Field(default_factory=list)
+
+
+class UpdateSettingsRequest(BaseModel):
+    site_theme: str = Field(default="candy-soft")
+    global_skill_references: list[str] = Field(default_factory=list)
 
 
 class CrewEnvelope(BaseModel):

@@ -22,7 +22,7 @@ class GitHubCopilotAdapter(ProviderAdapter):
         return tuple(candidate for candidate in (override, str(bundled), "copilot") if candidate)
 
     def build_command(self, binary: str, session: AgentSession, prompt: str) -> list[str]:
-        config_dir = session.config_dir or str(Path(session.workspace_dir) / ".config")
+        config_dir = session.config_dir or str(self.runtime_dir(session) / "config")
         working_dir = self.session_working_dir(session)
         command = [
             binary,
@@ -83,7 +83,7 @@ class GitHubCopilotAdapter(ProviderAdapter):
             raise ProviderExecutionError(f"{self.label} CLI is not available on this machine.")
 
         prompt = self.build_prompt(transcript, session=session)
-        config_dir = session.config_dir or str(Path(session.workspace_dir) / ".config")
+        config_dir = session.config_dir or str(self.runtime_dir(session) / "config")
         working_dir = self.session_working_dir(session)
         command = [
             binary,

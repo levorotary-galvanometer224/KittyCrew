@@ -23,6 +23,7 @@ class ClaudeCodeAdapter(ProviderAdapter):
         self,
         session_id: str,
         working_dir: str | None = None,
+        member_title: str | None = None,
         skills: list[SkillOption] | None = None,
         skill_name: str | None = None,
         skill_path: str | None = None,
@@ -30,6 +31,7 @@ class ClaudeCodeAdapter(ProviderAdapter):
         session = await super().create_session(
             session_id,
             working_dir=working_dir,
+            member_title=member_title,
             skills=skills,
             skill_name=skill_name,
             skill_path=skill_path,

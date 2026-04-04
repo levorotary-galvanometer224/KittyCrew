@@ -3,6 +3,9 @@ const state = {
   avatars: [],
   providers: [],
   skills: [],
+  siteTheme: "candy-soft",
+  globalSkills: [],
+  memberNameCandidates: [],
   providerModels: {},
   providerModelsFetchedAt: {},
   activeCrewId: null,
@@ -10,21 +13,34 @@ const state = {
   activeMemberProvider: "",
   editingCrewId: null,
   editingMemberId: null,
+  editingMemberScope: null,
   crewNameDraft: "",
   memberNameDraft: "",
+  memberTitleDraft: "",
   memberWorkingDirDraft: "",
+  memberWorkingDirAuto: "",
+  memberWorkingDirTouched: false,
   memberSkillSelections: [],
   memberSkillCustom: "",
   activeSkillMemberId: null,
   skillModalSelections: [],
   skillModalCustom: "",
+  globalSettingsThemeDraft: "candy-soft",
+  globalSkillSelections: [],
+  globalSkillCustom: "",
   projectRoot: "",
   activeExpandedMemberId: null,
   composerDrafts: {},
   memberQueues: {},
 };
 
-const DEFAULT_MEMBER_WORKDIR = "/tmp/KittyCrew";
+const SITE_THEMES = [
+  { id: "candy-soft", label: "Candy Soft", description: "The current pastel control room." },
+  { id: "sunset-pop", label: "Sunset Pop", description: "Warm coral gradients and punchier contrast." },
+  { id: "mint-garden", label: "Mint Garden", description: "Fresh greens with airy card tones." },
+  { id: "midnight-ink", label: "Midnight Ink", description: "Dark navy surfaces with crisp highlights." },
+  { id: "peach-cream", label: "Peach Cream", description: "Soft peach cards and bright paper tones." },
+];
 
 const pendingMembers = new Set();
 const memberStreams = new Map();
@@ -32,8 +48,17 @@ const providerModelLoads = new Map();
 
 const crewList = document.querySelector("#crew-list");
 const addCrewButton = document.querySelector("#add-crew-button");
+const globalSettingsButton = document.querySelector("#global-settings-button");
+const globalSettingsModal = document.querySelector("#global-settings-modal");
+const themeOptions = document.querySelector("#theme-options");
+const globalSkillSelected = document.querySelector("#global-skill-selected");
+const globalSkillOptions = document.querySelector("#global-skill-options");
+const globalSkillCustomInput = document.querySelector("#global-skill-custom");
+const globalSkillAddButton = document.querySelector("#global-skill-add-button");
+const globalSettingsSaveButton = document.querySelector("#global-settings-save-button");
 const memberModal = document.querySelector("#member-modal");
 const providerOptions = document.querySelector("#provider-options");
+const memberTitleInput = document.querySelector("#member-title");
 const memberWorkingDirInput = document.querySelector("#member-working-dir");
 const memberSkillOptions = document.querySelector("#member-skill-options");
 const memberCreateSelected = document.querySelector("#member-create-selected");
@@ -54,12 +79,117 @@ const toast = document.querySelector("#toast");
 
 let toastTimer = null;
 
+const DEFAULT_MEMBER_NAME_CANDIDATES = [
+  "Mochi Whiskers",
+  "Poppy Paws",
+  "Luna Biscuit",
+  "Milo Mittens",
+  "Clover Tail",
+  "Pepper Purr",
+  "Nori Buttons",
+  "Olive Tuft",
+  "Maple Socks",
+  "Sunny Pebble",
+  "Coco Nibbles",
+  "Pumpkin Bloom",
+  "Hazel Puff",
+  "Teddy Marmalade",
+  "Pippa Velvet",
+  "Basil Toes",
+  "Waffle Nose",
+  "Daisy Curls",
+  "Benny Whisk",
+  "Rosie Pounce",
+  "Toffee Paws",
+  "Juniper Bean",
+  "Archie Fluff",
+  "Mabel Mews",
+  "Otis Dandelion",
+  "Ivy Snuggle",
+  "Mango Tumble",
+  "Ruby Sprout",
+  "Finn Clover",
+  "Maisie Purr",
+  "Biscuit Hop",
+  "Nala Trinket",
+  "Toby Patches",
+  "Willow Pebbles",
+  "Freya Nuzzle",
+  "Theo Buttercup",
+  "Penny Winks",
+  "Remy Fuzz",
+  "Millie Buttons",
+  "Leo Tinsel",
+  "Zoe Marzipan",
+  "Alfie Twirl",
+  "Bonnie Whimsy",
+  "Jasper Mallow",
+  "Honey Sable",
+  "Louie Pip",
+  "Piper Trinket",
+  "Chester Purrkins",
+  "Elsie Tofu",
+  "Murphy Velvet",
+  "Skye Pudding",
+  "Gus Acorn",
+  "Tilly Crumbs",
+  "Hugo Bramble",
+  "Suki Petal",
+  "Walter Waffles",
+  "Dolly Fable",
+  "Rory Pebble",
+  "Phoebe Tinsel",
+  "Benny Marshmallow",
+  "Minnie Thimble",
+  "Ollie Pompom",
+  "Sadie Plume",
+  "Harvey Button",
+  "Pru Feather",
+  "Rufus Noodle",
+  "Nina Pickles",
+  "Cosmo Pawsley",
+  "Bea Tumble",
+  "Ginger Dot",
+  "Percy Muffin",
+  "Winnie Purrl",
+  "Felix Wisp",
+  "Dotty Maple",
+  "Cleo Snickers",
+  "Bruno Pecan",
+  "Birdie Bubbles",
+  "Ralph Custard",
+  "Indie Fawn",
+  "Mimi Pockets",
+  "Bodhi Tater",
+  "Cali Twinkle",
+  "Ozzy Buttons",
+  "Nellie Moss",
+  "Kiki Sherbet",
+  "Maxie Purrcy",
+  "Dottie Tofu",
+  "Sage Pollen",
+  "Rocco Biscotti",
+  "Lottie Pawsworth",
+  "Yuki Crumpet",
+  "Trixie Meringue",
+  "Juno Whispurr",
+  "Bambi Chestnut",
+  "Frankie Popcorn",
+  "Marnie Nuzzles",
+  "Ziggy Paws",
+  "Evie Butterbean",
+  "Koda Whiskers",
+  "Pixie Tart",
+];
+
 document.addEventListener("DOMContentLoaded", () => {
   bindGlobalEvents();
   refreshState().catch((error) => showToast(error.message));
 });
 
 function bindGlobalEvents() {
+  globalSettingsButton.addEventListener("click", () => openGlobalSettingsModal());
+
   addCrewButton.addEventListener("click", async () => {
     addCrewButton.disabled = true;
     try {
@@ -75,6 +205,12 @@ function bindGlobalEvents() {
   memberModal.addEventListener("click", (event) => {
     if (event.target === memberModal || event.target.dataset.closeModal === "member") {
       closeMemberModal();
+    }
+  });
+
+  globalSettingsModal.addEventListener("click", (event) => {
+    if (event.target === globalSettingsModal || event.target.dataset.closeModal === "global-settings") {
+      closeGlobalSettingsModal();
     }
   });
 
@@ -101,29 +237,77 @@ function bindGlobalEvents() {
       return;
     }
     closeMemberModal();
+    closeGlobalSettingsModal();
     closeSkillModal();
     closeAvatarModal();
     closeExpandedMemberModal();
   });
 
+  memberTitleInput.addEventListener("input", (event) => {
+    const previousAuto = state.memberWorkingDirAuto;
+    state.memberTitleDraft = event.target.value;
+    state.memberWorkingDirAuto = buildDefaultMemberWorkingDir(state.projectRoot, state.memberTitleDraft);
+    if (!state.memberWorkingDirTouched || state.memberWorkingDirDraft === previousAuto) {
+      state.memberWorkingDirDraft = state.memberWorkingDirAuto;
+      memberWorkingDirInput.value = state.memberWorkingDirDraft;
+      state.memberWorkingDirTouched = false;
+    }
+  });
+
   memberWorkingDirInput.addEventListener("input", (event) => {
     state.memberWorkingDirDraft = event.target.value;
+    state.memberWorkingDirTouched = state.memberWorkingDirDraft !== state.memberWorkingDirAuto;
   });
 
   memberSkillCustomInput.addEventListener("input", (event) => {
     state.memberSkillCustom = event.target.value;
+    renderCreateSkillOptions();
   });
 
   memberSkillAddButton.addEventListener("click", () => {
-    addCreateSkillSelection(state.memberSkillCustom.trim());
+    addCreateSkillSelection(resolveSkillReference(state.memberSkillCustom.trim(), state.globalSkills));
   });
 
   skillModalCustomInput.addEventListener("input", (event) => {
     state.skillModalCustom = event.target.value;
+    renderSkillModal();
   });
 
   skillModalAddButton.addEventListener("click", () => {
-    addSkillModalSelection(state.skillModalCustom.trim());
+    addSkillModalSelection(resolveSkillReference(state.skillModalCustom.trim(), state.globalSkills));
+  });
+
+  globalSkillCustomInput.addEventListener("input", (event) => {
+    state.globalSkillCustom = event.target.value;
+    renderGlobalSettingsModal();
+  });
+
+  globalSkillAddButton.addEventListener("click", () => {
+    addGlobalSkillSelection(resolveSkillReference(state.globalSkillCustom.trim(), state.skills));
+  });
+
+  memberSkillCustomInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    addCreateSkillSelection(resolveSkillReference(state.memberSkillCustom.trim(), state.globalSkills));
+  });
+
+  skillModalCustomInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    addSkillModalSelection(resolveSkillReference(state.skillModalCustom.trim(), state.globalSkills));
+  });
+
+  globalSkillCustomInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    addGlobalSkillSelection(resolveSkillReference(state.globalSkillCustom.trim(), state.skills));
   });
 
   skillModalSaveButton.addEventListener("click", async () => {
@@ -147,6 +331,26 @@ function bindGlobalEvents() {
     }
   });
 
+  globalSettingsSaveButton.addEventListener("click", async () => {
+    globalSettingsSaveButton.disabled = true;
+    try {
+      const payload = await request("/api/settings", {
+        method: "PATCH",
+        body: {
+          site_theme: state.globalSettingsThemeDraft,
+          global_skill_references: state.globalSkillSelections,
+        },
+      });
+      applyBootstrap(payload);
+      closeGlobalSettingsModal();
+      render();
+    } catch (error) {
+      showToast(error.message);
+    } finally {
+      globalSettingsSaveButton.disabled = false;
+    }
+  });
+
   memberCreateButton.addEventListener("click", async () => {
     if (!state.activeCrewId) {
       return;
@@ -157,6 +361,11 @@ function bindGlobalEvents() {
     }
 
     const workingDir = state.memberWorkingDirDraft.trim();
+    const title = state.memberTitleDraft.trim();
+    if (!title) {
+      showToast("Member name cannot be empty.");
+      return;
+    }
     if (!workingDir) {
       showToast("Working directory cannot be empty.");
       return;
@@ -168,6 +377,7 @@ function bindGlobalEvents() {
         method: "POST",
         body: {
           provider: state.activeMemberProvider,
+          title,
           working_dir: workingDir,
           skill_references: state.memberSkillSelections,
         },
@@ -184,18 +394,34 @@ function bindGlobalEvents() {
 
 async function refreshState() {
   const data = await request("/api/state");
-  state.crews = data.state.crews;
+  applyBootstrap(data);
+  render();
+}
+
+function applyBootstrap(data) {
+  state.crews = data.state?.crews ?? [];
+  state.siteTheme = data.state?.site_theme ?? "candy-soft";
+  state.globalSkills = data.state?.global_skills ?? [];
   state.avatars = data.avatars;
   state.providers = data.providers;
   state.skills = data.skills ?? [];
+  state.memberNameCandidates = data.member_name_candidates ?? DEFAULT_MEMBER_NAME_CANDIDATES;
   state.projectRoot = data.project_root ?? "";
-  render();
+  applySiteTheme(state.siteTheme);
+}
+
+function applySiteTheme(themeId) {
+  if (!document.body?.dataset) {
+    return;
+  }
+  document.body.dataset.theme = themeId || "candy-soft";
 }
 
 function render() {
   const interactionState = captureMemberInteractionState(document.activeElement);
   const chatScrollState = captureChatScrollState(document.querySelectorAll(".chat-log"));
   renderCrews();
+  renderGlobalSettingsModal();
   renderProviderOptions();
   renderCreateSkillOptions();
   renderSkillModal();
@@ -226,6 +452,43 @@ function renderCrews() {
   for (const crew of state.crews) {
     crewList.append(createCrewElement(crew));
   }
+}
+
+function getUsedMemberTitles(crews) {
+  return crews.flatMap((crew) => crew.members.map((member) => member.title));
+}
+
+function normalizeMemberName(value) {
+  return String(value ?? "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeMemberNameKey(value) {
+  return normalizeMemberName(value).toLowerCase();
+}
+
+export function pickAvailableMemberName(
+  usedNames,
+  offset = Date.now(),
+  candidates = DEFAULT_MEMBER_NAME_CANDIDATES,
+) {
+  const used = new Set(usedNames.map((name) => normalizeMemberNameKey(name)));
+  const available = candidates.filter((name) => !used.has(normalizeMemberNameKey(name)));
+  if (available.length === 0) {
+    return "";
+  }
+  const startIndex = Math.abs(Number(offset) || 0) % available.length;
+  return available[startIndex];
+}
+
+export function buildDefaultMemberWorkingDir(projectRoot, title) {
+  const root = "/tmp/KittyCrew";
+  const normalizedTitle = normalizeMemberName(title);
+  const slug = normalizedTitle.replace(/[\\/]+/g, "-").replace(/\s+/g, "-").replace(/^[.\s-]+|[.\s-]+$/g, "") || "member";
+  return `${root}/${slug}`;
+}
+
+export function isMemberInteractionLocked(runtimeState, memberId, expanded) {
+  return false;
 }
 
 function createCrewElement(crew) {
@@ -336,7 +599,7 @@ function createMemberElement(member, { expanded = false } = {}) {
   const avatar = avatarMap().get(member.avatar_id);
   const provider = providerMap().get(member.provider);
   const currentStatus = pendingMembers.has(member.id) ? "thinking" : member.status;
-  const interactionLocked = state.activeExpandedMemberId === member.id && !expanded;
+  const interactionLocked = isMemberInteractionLocked(state, member.id, expanded);
 
   const actions = document.createElement("div");
   actions.className = "member-card__actions";
@@ -397,7 +660,10 @@ function createMemberElement(member, { expanded = false } = {}) {
   const meta = document.createElement("div");
   meta.className = "member-meta";
 
-  const titleBlock = createMemberTitleBlock(member, { disabled: interactionLocked });
+  const titleBlock = createMemberTitleBlock(member, {
+    disabled: interactionLocked,
+    scope: expanded ? "expanded" : "crew",
+  });
 
   const subline = document.createElement("div");
   subline.className = "member-subline";
@@ -571,7 +837,7 @@ function createModelSelector(member, { disabled = false } = {}) {
 
   const dirLine = document.createElement("small");
   dirLine.className = "model-picker__dir";
-  dirLine.textContent = `Dir: ${member.session?.working_dir ?? member.session?.workspace_dir ?? ""}`;
+  dirLine.textContent = `Dir: ${member.session?.working_dir ?? ""}`;
 
   wrap.append(title, select, hint, dirLine);
   return wrap;
@@ -650,11 +916,11 @@ function createCrewNameBlock(crew) {
   return wrap;
 }
 
-function createMemberTitleBlock(member, { disabled = false } = {}) {
+function createMemberTitleBlock(member, { disabled = false, scope = "crew" } = {}) {
   const wrap = document.createElement("div");
   wrap.className = "name-row name-row--member";
 
-  if (state.editingMemberId === member.id) {
+  if (state.editingMemberId === member.id && state.editingMemberScope === scope) {
     const form = document.createElement("form");
     form.className = "inline-name-form inline-name-form--member";
 
@@ -695,7 +961,11 @@ function createMemberTitleBlock(member, { disabled = false } = {}) {
       }
     });
 
-    form.append(input, saveButton, cancelButton);
+    const actions = document.createElement("div");
+    actions.className = "inline-name-actions";
+    actions.append(saveButton, cancelButton);
+
+    form.append(input, actions);
     wrap.append(form);
     queueMicrotask(() => input.focus());
     return wrap;
@@ -708,7 +978,7 @@ function createMemberTitleBlock(member, { disabled = false } = {}) {
   title.disabled = disabled;
   title.title = "Click to rename";
   title.setAttribute("aria-label", `Rename ${member.title}`);
-  title.addEventListener("click", () => startMemberRename(member));
+  title.addEventListener("click", () => startMemberRename(member, scope));
 
   wrap.append(title);
   return wrap;
@@ -748,13 +1018,76 @@ function renderProviderOptions() {
   }
 }
 
+function renderGlobalSettingsModal() {
+  if (!themeOptions || !globalSkillSelected || !globalSkillOptions) {
+    return;
+  }
+
+  themeOptions.replaceChildren();
+  for (const theme of SITE_THEMES) {
+    const button = document.createElement("button");
+    button.className = "theme-option";
+    button.type = "button";
+    button.dataset.selected = String(state.globalSettingsThemeDraft === theme.id);
+
+    const title = document.createElement("strong");
+    title.textContent = theme.label;
+
+    const description = document.createElement("small");
+    description.textContent = theme.description;
+
+    button.append(title, description);
+    button.addEventListener("click", () => {
+      state.globalSettingsThemeDraft = theme.id;
+      renderGlobalSettingsModal();
+    });
+    themeOptions.append(button);
+  }
+
+  globalSkillSelected.replaceChildren();
+  for (const skillRef of state.globalSkillSelections) {
+    const row = document.createElement("div");
+    row.className = "selected-skill-pill";
+
+    const matched = findSkillByPath(skillRef, state.skills);
+    const label = document.createElement("span");
+    label.textContent = matched ? `${matched.name} — ${matched.path}` : skillRef;
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "icon-chip icon-chip--danger";
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.addEventListener("click", () => {
+      state.globalSkillSelections = state.globalSkillSelections.filter((item) => item !== skillRef);
+      renderGlobalSettingsModal();
+    });
+
+    row.append(label, removeButton);
+    globalSkillSelected.append(row);
+  }
+
+  renderSkillSuggestions({
+    container: globalSkillOptions,
+    skills: state.skills,
+    query: state.globalSkillCustom,
+    selectedPaths: state.globalSkillSelections,
+    emptyLabel: "No matching system skills.",
+    onSelect: (skillPath) => {
+      state.globalSkillSelections = addUniqueSkillSelection(state.globalSkillSelections, skillPath);
+      state.globalSkillCustom = "";
+      globalSkillCustomInput.value = "";
+      renderGlobalSettingsModal();
+    },
+  });
+}
+
 function renderCreateSkillOptions() {
   memberCreateSelected.replaceChildren();
   for (const skillRef of state.memberSkillSelections) {
     const row = document.createElement("div");
     row.className = "selected-skill-pill";
 
-    const matched = state.skills.find((skill) => skill.path === skillRef);
+    const matched = findSkillByPath(skillRef, state.globalSkills);
     const label = document.createElement("span");
     label.textContent = matched ? `${matched.name} — ${matched.path}` : skillRef;
 
@@ -771,9 +1104,18 @@ function renderCreateSkillOptions() {
     memberCreateSelected.append(row);
   }
 
-  renderSkillChecklist(memberSkillOptions, state.memberSkillSelections, (skillPath, checked) => {
-    state.memberSkillSelections = toggleSkillSelection(state.memberSkillSelections, skillPath, checked);
-    renderCreateSkillOptions();
+  renderSkillSuggestions({
+    container: memberSkillOptions,
+    skills: state.globalSkills,
+    query: state.memberSkillCustom,
+    selectedPaths: state.memberSkillSelections,
+    emptyLabel: "No matching global skills.",
+    onSelect: (skillPath) => {
+      state.memberSkillSelections = addUniqueSkillSelection(state.memberSkillSelections, skillPath);
+      state.memberSkillCustom = "";
+      memberSkillCustomInput.value = "";
+      renderCreateSkillOptions();
+    },
   });
 }
 
@@ -783,7 +1125,7 @@ function renderSkillModal() {
     const row = document.createElement("div");
     row.className = "selected-skill-pill";
 
-    const matched = state.skills.find((skill) => skill.path === skillRef);
+    const matched = findSkillByPath(skillRef, state.globalSkills);
     const label = document.createElement("span");
     label.textContent = matched ? `${matched.name} — ${matched.path}` : skillRef;
 
@@ -800,28 +1142,40 @@ function renderSkillModal() {
     memberSkillSelected.append(row);
   }
 
-  renderSkillChecklist(skillModalOptions, state.skillModalSelections, (skillPath, checked) => {
-    state.skillModalSelections = toggleSkillSelection(state.skillModalSelections, skillPath, checked);
-    renderSkillModal();
+  renderSkillSuggestions({
+    container: skillModalOptions,
+    skills: state.globalSkills,
+    query: state.skillModalCustom,
+    selectedPaths: state.skillModalSelections,
+    emptyLabel: "No matching global skills.",
+    onSelect: (skillPath) => {
+      state.skillModalSelections = addUniqueSkillSelection(state.skillModalSelections, skillPath);
+      state.skillModalCustom = "";
+      skillModalCustomInput.value = "";
+      renderSkillModal();
+    },
   });
 }
 
-function renderSkillChecklist(container, selectedPaths, onToggle) {
+function renderSkillSuggestions({ container, skills, query, selectedPaths, emptyLabel, onSelect }) {
   container.replaceChildren();
+  const suggestions = getSkillSuggestions(skills, query, selectedPaths);
 
-  for (const skill of state.skills) {
-    const label = document.createElement("label");
-    label.className = "skill-option";
+  if (suggestions.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "skill-suggestion skill-suggestion--empty";
+    empty.textContent = emptyLabel;
+    container.append(empty);
+    return;
+  }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = selectedPaths.includes(skill.path);
-    checkbox.addEventListener("change", (event) => {
-      onToggle(skill.path, event.target.checked);
-    });
+  for (const skill of suggestions) {
+    const button = document.createElement("button");
+    button.className = "skill-suggestion";
+    button.type = "button";
 
     const textWrap = document.createElement("div");
-    textWrap.className = "skill-option__body";
+    textWrap.className = "skill-suggestion__body";
 
     const title = document.createElement("strong");
     title.textContent = skill.name;
@@ -830,9 +1184,103 @@ function renderSkillChecklist(container, selectedPaths, onToggle) {
     path.textContent = skill.path;
 
     textWrap.append(title, path);
-    label.append(checkbox, textWrap);
-    container.append(label);
+
+    if (skill.description) {
+      const description = document.createElement("small");
+      description.textContent = skill.description;
+      textWrap.append(description);
+    }
+
+    button.append(textWrap);
+    button.addEventListener("click", () => onSelect(skill.path));
+    container.append(button);
   }
+}
+
+function findSkillByPath(path, skills) {
+  return (skills ?? []).find((skill) => skill.path === path) ?? null;
+}
+
+export function getSkillSuggestions(skills, query, selectedPaths, limit = 8) {
+  const normalizedQuery = normalizeSkillQuery(query);
+  const unselectedSkills = skills.filter((skill) => !selectedPaths.includes(skill.path));
+
+  if (!normalizedQuery) {
+    return unselectedSkills.slice(0, limit);
+  }
+
+  return unselectedSkills
+    .map((skill) => ({
+      skill,
+      score: scoreSkillSuggestion(skill, normalizedQuery),
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+      return left.skill.name.localeCompare(right.skill.name);
+    })
+    .slice(0, limit)
+    .map(({ skill }) => skill);
+}
+
+function normalizeSkillQuery(query) {
+  return String(query ?? "").trim().toLowerCase();
+}
+
+function scoreSkillSuggestion(skill, normalizedQuery) {
+  const name = normalizeSkillQuery(skill.name);
+  const path = normalizeSkillQuery(skill.path);
+  const description = normalizeSkillQuery(skill.description);
+
+  if (name === normalizedQuery || path === normalizedQuery) {
+    return 120;
+  }
+  if (name.startsWith(normalizedQuery)) {
+    return 90;
+  }
+  if (path.startsWith(normalizedQuery)) {
+    return 75;
+  }
+  if (name.includes(normalizedQuery)) {
+    return 60;
+  }
+  if (description.includes(normalizedQuery)) {
+    return 40;
+  }
+  if (path.includes(normalizedQuery)) {
+    return 30;
+  }
+  return 0;
+}
+
+export function resolveSkillReference(reference, skills) {
+  const trimmed = String(reference ?? "").trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalized = trimmed.toLowerCase();
+  const exactPath = skills.find((skill) => skill.path.toLowerCase() === normalized);
+  if (exactPath) {
+    return exactPath.path;
+  }
+
+  const exactNameMatches = skills.filter((skill) => skill.name.toLowerCase() === normalized);
+  if (exactNameMatches.length === 1) {
+    return exactNameMatches[0].path;
+  }
+
+  const bestSuggestion = getSkillSuggestions(skills, trimmed, [], 1)[0];
+  if (bestSuggestion) {
+    const bestName = bestSuggestion.name.toLowerCase();
+    if (bestName.startsWith(normalized) || bestSuggestion.path.toLowerCase() === normalized) {
+      return bestSuggestion.path;
+    }
+  }
+
+  return null;
 }
 
 function renderAvatarOptions() {
@@ -1006,26 +1454,49 @@ function cancelCrewRename(shouldRender = true) {
   }
 }
 
-function startMemberRename(member) {
+function startMemberRename(member, scope = "crew") {
   state.editingMemberId = member.id;
+  state.editingMemberScope = scope;
   state.memberNameDraft = member.title;
   render();
 }
 
 function cancelMemberRename(shouldRender = true) {
   state.editingMemberId = null;
+  state.editingMemberScope = null;
   state.memberNameDraft = "";
   if (shouldRender) {
     render();
   }
 }
 
+function openGlobalSettingsModal() {
+  state.globalSettingsThemeDraft = state.siteTheme;
+  state.globalSkillSelections = state.globalSkills.map((skill) => skill.path);
+  state.globalSkillCustom = "";
+  globalSkillCustomInput.value = "";
+  globalSettingsModal.classList.remove("is-hidden");
+  renderGlobalSettingsModal();
+}
+
+function closeGlobalSettingsModal() {
+  state.globalSettingsThemeDraft = state.siteTheme;
+  state.globalSkillSelections = [];
+  state.globalSkillCustom = "";
+  globalSkillCustomInput.value = "";
+  globalSettingsModal.classList.add("is-hidden");
+}
+
 function openMemberModal(crewId) {
   state.activeCrewId = crewId;
   state.activeMemberProvider = "";
-  state.memberWorkingDirDraft = DEFAULT_MEMBER_WORKDIR;
+  state.memberTitleDraft = pickAvailableMemberName(getUsedMemberTitles(state.crews), Date.now(), state.memberNameCandidates);
+  state.memberWorkingDirAuto = buildDefaultMemberWorkingDir(state.projectRoot, state.memberTitleDraft);
+  state.memberWorkingDirDraft = state.memberWorkingDirAuto;
+  state.memberWorkingDirTouched = false;
   state.memberSkillSelections = [];
   state.memberSkillCustom = "";
+  memberTitleInput.value = state.memberTitleDraft;
   memberWorkingDirInput.value = state.memberWorkingDirDraft;
   memberSkillCustomInput.value = "";
   memberModal.classList.remove("is-hidden");
@@ -1036,7 +1507,10 @@ function openMemberModal(crewId) {
 function closeMemberModal() {
   state.activeCrewId = null;
   state.activeMemberProvider = "";
+  state.memberTitleDraft = "";
   state.memberWorkingDirDraft = "";
+  state.memberWorkingDirAuto = "";
+  state.memberWorkingDirTouched = false;
   state.memberSkillSelections = [];
   state.memberSkillCustom = "";
   memberModal.classList.add("is-hidden");
@@ -1060,6 +1534,7 @@ function closeSkillModal() {
 
 function addCreateSkillSelection(reference) {
   if (!reference) {
+    showToast("Choose a skill from the global skill list.");
     return;
   }
   state.memberSkillSelections = addUniqueSkillSelection(state.memberSkillSelections, reference);
@@ -1070,6 +1545,7 @@ function addCreateSkillSelection(reference) {
 
 function addSkillModalSelection(reference) {
   if (!reference) {
+    showToast("Choose a skill from the global skill list.");
     return;
   }
   state.skillModalSelections = addUniqueSkillSelection(state.skillModalSelections, reference);
@@ -1078,15 +1554,19 @@ function addSkillModalSelection(reference) {
   renderSkillModal();
 }
 
-function addUniqueSkillSelection(selections, reference) {
-  return selections.includes(reference) ? selections : [...selections, reference];
+function addGlobalSkillSelection(reference) {
+  if (!reference) {
+    showToast("Choose a discovered system skill.");
+    return;
+  }
+  state.globalSkillSelections = addUniqueSkillSelection(state.globalSkillSelections, reference);
+  state.globalSkillCustom = "";
+  globalSkillCustomInput.value = "";
+  renderGlobalSettingsModal();
 }
 
-function toggleSkillSelection(selections, skillPath, checked) {
-  if (checked) {
-    return addUniqueSkillSelection(selections, skillPath);
-  }
-  return selections.filter((item) => item !== skillPath);
+function addUniqueSkillSelection(selections, reference) {
+  return selections.includes(reference) ? selections : [...selections, reference];
 }
 
 function getMemberSkills(member) {
@@ -1116,6 +1596,9 @@ function openExpandedMemberModal(memberId) {
 }
 
 function closeExpandedMemberModal() {
+  if (state.editingMemberScope === "expanded") {
+    cancelMemberRename(false);
+  }
   state.activeExpandedMemberId = null;
   expandedMemberModal.classList.add("is-hidden");
   expandedMemberContent.replaceChildren();
