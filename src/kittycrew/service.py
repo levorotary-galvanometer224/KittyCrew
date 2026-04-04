@@ -1,14 +1,24 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import shutil
 from collections.abc import AsyncGenerator
 from contextlib import suppress
 from pathlib import Path
 from uuid import uuid4
 
 from kittycrew.catalog import build_provider_definitions, default_avatar, find_avatar, member_avatar_options, PROVIDER_LABELS
+from kittycrew.member_names import (
+    CANDIDATE_MEMBER_NAMES,
+    build_member_workdir,
+    normalize_member_name,
+    normalize_member_name_key,
+    pick_available_member_name,
+)
 from kittycrew.models import (
     AppBootstrap,
+    AppState,
     ChatMessage,
     Crew,
     CrewMember,
@@ -16,6 +26,7 @@ from kittycrew.models import (
     ProviderModelOption,
     ProviderType,
     SkillOption,
+    SUPPORTED_SITE_THEMES,
 )
 from kittycrew.providers import ProviderRegistry
 from kittycrew.providers.base import ProviderExecutionHandle, ProviderUnavailableError
@@ -56,6 +67,7 @@ class CrewService:
             avatars=member_avatar_options(),
             providers=build_provider_definitions(availability),
             skills=self.list_skills(),
+            member_name_candidates=CANDIDATE_MEMBER_NAMES,
             project_root=str(self.project_root.resolve()),
         )
 
@@ -67,10 +79,22 @@ class CrewService:
 
         return await self.store.mutate(operation)
 
+    async def update_settings(self, site_theme: str, global_skill_references: list[str] | None = None) -> AppBootstrap:
+        normalized_theme = self._validate_site_theme(site_theme)
+        resolved_skills = resolve_skill_references(global_skill_references or [], self.list_skills())
+
+        def operation(state: AppState):
+            state.site_theme = normalized_theme
+            state.global_skills = resolved_skills
+
+        await self.store.mutate(operation)
+        return await self.bootstrap()
+
     async def create_member(
         self,
         crew_id: str,
         provider: ProviderType,
+        title: str | None = None,
         working_dir: str | None = None,
         skill_references: list[str] | None = None,
         skill_reference: str | None = None,
@@ -80,42 +104,47 @@ class CrewService:
             raise ProviderUnavailableError(f"{PROVIDER_LABELS[provider]} CLI is not available.")
 
         member_id = str(uuid4())
-        resolved_working_dir = self._normalize_working_dir(working_dir)
+        snapshot = await self.store.load()
+        self._find_crew(snapshot, crew_id)
+        resolved_title = self._resolve_member_title(snapshot, title)
+        resolved_working_dir = self._normalize_working_dir(working_dir, member_title=resolved_title)
         requested_skills = list(skill_references or [])
         if skill_reference:
             requested_skills.append(skill_reference)
-        resolved_skills = resolve_skill_references(requested_skills, self.list_skills())
-        session = await adapter.create_session(
-            member_id,
-            working_dir=str(resolved_working_dir),
-            skills=resolved_skills,
-        )
-
-        def operation(state):
-            crew = self._find_crew(state, crew_id)
-            if len(crew.members) >= 5:
-                raise CrewCapacityError("Each crew can have at most 5 members.")
-
-            member_index = sum(len(existing_crew.members) for existing_crew in state.crews)
-            provider_count = sum(
-                1
-                for existing_crew in state.crews
-                for member in existing_crew.members
-                if member.provider == provider
+        resolved_skills = self._resolve_allowed_member_skills(snapshot, requested_skills)
+        session = None
+        try:
+            session = await adapter.create_session(
+                member_id,
+                working_dir=str(resolved_working_dir),
+                member_title=resolved_title,
+                skills=resolved_skills,
             )
 
-            member = CrewMember(
-                id=member_id,
-                crew_id=crew_id,
-                provider=provider,
-                title=f"{PROVIDER_LABELS[provider]} {provider_count + 1}",
-                avatar_id=default_avatar(member_index),
-                session=session,
-            )
-            crew.members.append(member)
-            return member.model_copy(deep=True)
+            def operation(state):
+                crew = self._find_crew(state, crew_id)
+                if len(crew.members) >= 5:
+                    raise CrewCapacityError("Each crew can have at most 5 members.")
+                self._ensure_member_name_available(state, resolved_title)
 
-        return await self.store.mutate(operation)
+                member_index = sum(len(existing_crew.members) for existing_crew in state.crews)
+                member = CrewMember(
+                    id=member_id,
+                    crew_id=crew_id,
+                    provider=provider,
+                    title=resolved_title,
+                    avatar_id=default_avatar(member_index),
+                    session=session,
+                )
+                crew.members.append(member)
+                return member.model_copy(deep=True)
+
+            return await self.store.mutate(operation)
+        except Exception:
+            if session is not None:
+                with suppress(Exception):
+                    await adapter.delete_session(session)
+            raise
 
     async def list_provider_models(self, provider: ProviderType) -> list[ProviderModelOption]:
         return await self.registry.get(provider).list_models()
@@ -150,11 +179,13 @@ class CrewService:
             await self._cleanup_member_runtime(member)
 
     async def rename_member(self, member_id: str, title: str) -> CrewMember:
-        trimmed_title = self._normalize_name(title, label="Member name")
+        trimmed_title = normalize_member_name(self._normalize_name(title, label="Member name"))
 
         def operation(state):
             member = self._find_member(state, member_id)
+            self._ensure_member_name_available(state, trimmed_title, excluding_member_id=member_id)
             member.title = trimmed_title
+            member.session.member_title = trimmed_title
             return member.model_copy(deep=True)
 
         return await self.store.mutate(operation)
@@ -177,7 +208,9 @@ class CrewService:
         return await self.store.mutate(operation)
 
     async def update_member_skills(self, member_id: str, skill_references: list[str] | None) -> CrewMember:
-        resolved_skills = resolve_skill_references(skill_references or [], self.list_skills())
+        snapshot = await self.store.load()
+        self._find_member(snapshot, member_id)
+        resolved_skills = self._resolve_allowed_member_skills(snapshot, skill_references or [])
 
         def operation(state):
             target = self._find_member(state, member_id)
@@ -370,14 +403,59 @@ class CrewService:
             raise ValueError(f"{label} cannot be longer than 80 characters.")
         return trimmed
 
-    def _normalize_working_dir(self, working_dir: str | None) -> Path:
-        candidate = Path(working_dir).expanduser() if working_dir else self.project_root
-        resolved = candidate.resolve()
-        if not resolved.exists():
-            resolved.mkdir(parents=True, exist_ok=True)
-        if not resolved.is_dir():
-            raise ValueError(f"Working directory '{resolved}' is not a directory.")
+    def _validate_site_theme(self, site_theme: str | None) -> str:
+        normalized = str(site_theme or "").strip() or "candy-soft"
+        if normalized not in SUPPORTED_SITE_THEMES:
+            raise ValueError(f"Unknown site theme '{normalized}'.")
+        return normalized
+
+    def _normalize_working_dir(self, working_dir: str | None, member_title: str | None = None) -> Path:
+        candidate = Path(working_dir).expanduser() if working_dir else build_member_workdir(self.project_root, member_title or "")
+        normalized = candidate if candidate.is_absolute() else (self.project_root / candidate)
+        normalized = Path(os.path.abspath(str(normalized)))
+        normalized = self._display_working_dir(normalized)
+        if not normalized.exists():
+            normalized.mkdir(parents=True, exist_ok=True)
+        if not normalized.is_dir():
+            raise ValueError(f"Working directory '{normalized}' is not a directory.")
+        return normalized
+
+    def _display_working_dir(self, path: Path) -> Path:
+        path_str = str(path)
+        private_tmp_prefix = "/private/tmp/KittyCrew"
+        if path_str == private_tmp_prefix or path_str.startswith(private_tmp_prefix + "/"):
+            return Path("/tmp" + path_str[len("/private/tmp"):])
+        return path
+
+    def _resolve_member_title(self, state, requested_title: str | None) -> str:
+        if requested_title and requested_title.strip():
+            normalized = normalize_member_name(self._normalize_name(requested_title, label="Member name"))
+            self._ensure_member_name_available(state, normalized)
+            return normalized
+
+        suggested = pick_available_member_name(member.title for crew in state.crews for member in crew.members)
+        if suggested is None:
+            raise ValueError("All built-in member names are already in use. Enter a custom unique name.")
+        return suggested
+
+    def _resolve_allowed_member_skills(self, state: AppState, references: list[str] | None) -> list[SkillOption]:
+        resolved = resolve_skill_references(references or [], self.list_skills())
+        if not resolved:
+            return []
+
+        allowed_paths = {skill.path for skill in state.global_skills}
+        if not allowed_paths or any(skill.path not in allowed_paths for skill in resolved):
+            raise ValueError("Member skills must come from the global skill list.")
         return resolved
+
+    def _ensure_member_name_available(self, state, title: str, excluding_member_id: str | None = None) -> None:
+        target_key = normalize_member_name_key(title)
+        for crew in state.crews:
+            for member in crew.members:
+                if member.id == excluding_member_id:
+                    continue
+                if normalize_member_name_key(member.title) == target_key:
+                    raise ValueError(f"Member name '{title}' is already in use.")
 
     async def _cleanup_member_runtime(self, member: CrewMember) -> None:
         handle = self._active_handles.pop(member.id, None)
@@ -386,6 +464,27 @@ class CrewService:
 
         self._member_locks.pop(member.id, None)
         await self.registry.get(member.provider).delete_session(member.session)
+        self._delete_working_dir(member.session)
+
+    def _delete_working_dir(self, session) -> None:
+        working_dir = session.working_dir
+        if not working_dir:
+            return
+
+        workdir_path = Path(working_dir)
+        if not workdir_path.exists():
+            return
+
+        try:
+            resolved_workdir = workdir_path.resolve()
+            project_root = self.project_root.resolve()
+        except OSError:
+            return
+
+        if resolved_workdir == project_root:
+            return
+
+        shutil.rmtree(resolved_workdir, ignore_errors=True)
 
     def _find_crew(self, state, crew_id: str) -> Crew:
         for crew in state.crews:

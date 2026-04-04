@@ -23,6 +23,7 @@ from kittycrew.models import (
     UpdateMemberModelRequest,
     UpdateMemberSkillsRequest,
     UpdateMemberRequest,
+    UpdateSettingsRequest,
 )
 from kittycrew.providers import ProviderRegistry, build_provider_registry
 from kittycrew.providers.base import ProviderExecutionError, ProviderUnavailableError
@@ -50,7 +51,7 @@ def create_app(service: CrewService | None = None) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse(request, "index.html")
 
     @app.get("/api/state", response_model=AppBootstrap)
     async def get_state() -> AppBootstrap:
@@ -59,6 +60,16 @@ def create_app(service: CrewService | None = None) -> FastAPI:
     @app.get("/api/skills", response_model=SkillsEnvelope)
     async def get_skills() -> SkillsEnvelope:
         return SkillsEnvelope(skills=active_service.list_skills())
+
+    @app.patch("/api/settings", response_model=AppBootstrap)
+    async def update_settings(payload: UpdateSettingsRequest) -> AppBootstrap:
+        try:
+            return await active_service.update_settings(
+                site_theme=payload.site_theme,
+                global_skill_references=payload.global_skill_references,
+            )
+        except Exception as exc:
+            raise _to_http_error(exc) from exc
 
     @app.post("/api/crews", response_model=CrewEnvelope, status_code=status.HTTP_201_CREATED)
     async def create_crew() -> CrewEnvelope:
@@ -86,6 +97,7 @@ def create_app(service: CrewService | None = None) -> FastAPI:
             member = await active_service.create_member(
                 crew_id,
                 payload.provider,
+                title=payload.title,
                 working_dir=payload.working_dir,
                 skill_references=payload.skill_references,
                 skill_reference=payload.skill_reference,
@@ -178,7 +190,7 @@ def _to_http_error(exc: Exception) -> HTTPException:
     if isinstance(exc, CrewCapacityError):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
     if isinstance(exc, AvatarValidationError | ProviderExecutionError | ValueError):
-        return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+        return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc))
     if isinstance(exc, ProviderUnavailableError):
         return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))

@@ -40,9 +40,14 @@ globalThis.document = {
 };
 
 const {
+  buildDefaultMemberWorkingDir,
   captureMemberInteractionState,
   captureChatScrollState,
   getSendActionState,
+  getSkillSuggestions,
+  isMemberInteractionLocked,
+  pickAvailableMemberName,
+  resolveSkillReference,
   restoreMemberInteractionState,
   restoreChatScrollState,
 } = await import("../src/kittycrew/static/app.js");
@@ -144,4 +149,68 @@ test("preserves chat scroll positions without snapping to bottom", () => {
 
   assert.equal(restored, "member-1");
   assert.equal(replacementLog.scrollTop, 120);
+});
+
+test("ranks skill suggestions by name and excludes selected skills", () => {
+  const skills = [
+    { name: "frontend-design", path: "/skills/frontend-design/SKILL.md", description: "UI polish" },
+    { name: "brainstorming", path: "/skills/brainstorming/SKILL.md", description: "Design first" },
+    { name: "frontend-debug", path: "/skills/frontend-debug/SKILL.md", description: "Fix UI bugs" },
+  ];
+
+  const suggestions = getSkillSuggestions(skills, "front", ["/skills/frontend-debug/SKILL.md"]);
+  assert.deepEqual(
+    suggestions.map((skill) => skill.path),
+    ["/skills/frontend-design/SKILL.md"],
+  );
+});
+
+test("resolves typed skill names to canonical paths when unambiguous", () => {
+  const skills = [
+    { name: "frontend-design", path: "/skills/frontend-design/SKILL.md", description: "UI polish" },
+    { name: "brainstorming", path: "/skills/brainstorming/SKILL.md", description: "Design first" },
+  ];
+
+  assert.equal(
+    resolveSkillReference("frontend-design", skills),
+    "/skills/frontend-design/SKILL.md",
+  );
+  assert.equal(
+    resolveSkillReference("/skills/brainstorming/SKILL.md", skills),
+    "/skills/brainstorming/SKILL.md",
+  );
+  assert.equal(resolveSkillReference("custom-skill", skills), null);
+});
+
+test("returns null for empty or unknown skill references", () => {
+  const skills = [{ name: "brainstorming", path: "/skills/brainstorming/SKILL.md", description: "Design first" }];
+
+  assert.equal(resolveSkillReference("", skills), null);
+  assert.equal(resolveSkillReference("missing-skill", skills), null);
+});
+
+test("keeps expanded member detail interactive while the strip card stays locked", () => {
+  assert.equal(
+    isMemberInteractionLocked({ activeExpandedMemberId: "member-1", editingMemberScope: "expanded" }, "member-1", true),
+    false,
+  );
+  assert.equal(
+    isMemberInteractionLocked({ activeExpandedMemberId: "member-1", editingMemberScope: "expanded" }, "member-1", false),
+    false,
+  );
+});
+
+test("builds create-member default working directory from the project root and title", () => {
+  assert.equal(
+    buildDefaultMemberWorkingDir("/Users/kc/Desktop/个人资料/个人项目/KittyCrew", "Mochi Whiskers"),
+    "/tmp/KittyCrew/Mochi-Whiskers",
+  );
+});
+
+test("picks an unused cat-themed member name", () => {
+  const name = pickAvailableMemberName(["Mochi Whiskers", "Poppy Paws"], 0);
+  assert.notEqual(name, "Mochi Whiskers");
+  assert.notEqual(name, "Poppy Paws");
+  assert.equal(typeof name, "string");
+  assert.ok(name.length > 0);
 });

@@ -20,7 +20,7 @@ class CodexAdapter(ProviderAdapter):
         return tuple(candidate for candidate in (override, "codex") if candidate)
 
     def build_command(self, binary: str, session: AgentSession, prompt: str) -> list[str]:
-        output_path = Path(session.workspace_dir) / ".codex-last-message.txt"
+        output_path = self.runtime_dir(session) / ".codex-last-message.txt"
         output_path.unlink(missing_ok=True)
         working_dir = self.session_working_dir(session)
         command = [
@@ -55,7 +55,7 @@ class CodexAdapter(ProviderAdapter):
 
     def build_environment(self, session: AgentSession) -> dict[str, str]:
         environment = super().build_environment(session)
-        codex_home = Path(session.config_dir or Path(session.workspace_dir) / ".config") / "codex-home"
+        codex_home = Path(session.config_dir or self.runtime_dir(session) / "config") / "codex-home"
         codex_home.mkdir(parents=True, exist_ok=True)
         (codex_home / "skills").mkdir(parents=True, exist_ok=True)
 
@@ -147,7 +147,7 @@ class CodexAdapter(ProviderAdapter):
 
     async def extract_content(self, session: AgentSession, stdout: str, stderr: str) -> str:
         del stderr
-        output_path = Path(session.workspace_dir) / ".codex-last-message.txt"
+        output_path = self.runtime_dir(session) / ".codex-last-message.txt"
         if output_path.exists():
             file_content = output_path.read_text(encoding="utf-8").strip()
             if file_content:

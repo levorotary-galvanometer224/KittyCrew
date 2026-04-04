@@ -60,6 +60,8 @@ PROVIDER_LABELS: dict[ProviderType, str] = {
     ProviderType.CLAUDE_CODE: "Claude Code",
     ProviderType.CODEX: "Codex",
     ProviderType.GITHUB_COPILOT: "GitHub Copilot",
+    ProviderType.KIMI: "Kimi",
+    ProviderType.OPENCODE: "OpenCode",
 }
 
 
@@ -67,6 +69,8 @@ PROVIDER_SUMMARIES: dict[ProviderType, str] = {
     ProviderType.CLAUDE_CODE: "Anthropic Claude Code CLI wrapped as a KittyCrew member.",
     ProviderType.CODEX: "OpenAI Codex CLI wrapped as a KittyCrew member.",
     ProviderType.GITHUB_COPILOT: "GitHub Copilot CLI wrapped as a KittyCrew member.",
+    ProviderType.KIMI: "MoonshotAI Kimi Code CLI wrapped as a KittyCrew member.",
+    ProviderType.OPENCODE: "OpenCode CLI wrapped as a KittyCrew member.",
 }
 
 
