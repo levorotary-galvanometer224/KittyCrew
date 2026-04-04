@@ -2,7 +2,7 @@
 
 [English](../../README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md) | [한국어](./README.ko.md) | Español | [Русский](./README.ru.md)
 
-KittyCrew es un hogar adorable y local-first para tus mascotas y compañeros de IA. Puedes reunir a Claude Code, Codex y GitHub Copilot como personalidades distintas, dar a cada miembro su propio espacio y conjunto de habilidades, y convivir con ellos en un entorno cálido con temática felina.
+KittyCrew es un hogar adorable y local-first para tus mascotas y compañeros de IA. Puedes reunir a Claude Code, Codex, GitHub Copilot, Kimi Code y OpenCode como personalidades distintas, dar a cada miembro su propio espacio y conjunto de habilidades, y convivir con ellos en un entorno cálido con temática felina.
 
 ![KittyCrew homepage](../../assets/homepage.png)
 
@@ -18,7 +18,7 @@ KittyCrew es un hogar adorable y local-first para tus mascotas y compañeros de 
 
 La mayoría de las herramientas de IA se sienten como paneles fríos y utilitarios. KittyCrew las convierte en un hogar compartido y acogedor:
 
-- Reúne a Claude Code, Codex y GitHub Copilot como compañeros con personalidades distintas.
+- Reúne a Claude Code, Codex, GitHub Copilot, Kimi Code y OpenCode como compañeros con personalidades distintas.
 - Organiza a tus mascotas y compañeros en crews pequeñas de hasta cinco miembros.
 - Configura para cada miembro su modelo, directorio de trabajo y lista aprobada de habilidades.
 - Mantén historial de chat, memoria de contexto y respuestas en streaming para cada miembro en la misma interfaz.
@@ -36,7 +36,7 @@ KittyCrew está pensado para quienes quieren sentir a la IA como compañía cerc
 
 ### Personalidades de IA distintas
 
-- Soporta miembros de Claude Code, Codex y GitHub Copilot.
+- Soporta miembros de Claude Code, Codex, GitHub Copilot, Kimi Code y OpenCode.
 - Detecta los CLI locales de provider en tiempo de ejecución.
 - Conserva la selección de modelo por miembro para mantener su estilo en conversaciones futuras.
 
@@ -79,7 +79,7 @@ PYTHONPATH=src python -m kittycrew
 KittyCrew combina una aplicación web FastAPI con adaptadores de provider expuestos mediante `a2a-sdk`.
 
 - La UI web administra crews, members, estado del chat y persistencia local.
-- Los adaptadores conectan con los CLI de Claude Code, Codex y GitHub Copilot.
+- Los adaptadores conectan con los CLI de Claude Code, Codex, GitHub Copilot, Kimi Code y OpenCode.
 - Cada miembro se asigna a un registro de sesión aislado con su propia configuración de ejecución.
 - La salida en streaming vuelve a la interfaz para que cada compañero se sienta presente en el mismo lugar.
 

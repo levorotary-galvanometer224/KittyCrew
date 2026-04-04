@@ -2,7 +2,7 @@
 
 [English](../../README.md) | [简体中文](./README.zh-CN.md) | 繁體中文 | [日本語](./README.ja.md) | [한국어](./README.ko.md) | [Español](./README.es.md) | [Русский](./README.ru.md)
 
-KittyCrew 是一個可愛、以本地優先為核心的 AI 寵物與夥伴之家。它們不只是陪伴你，也能幫助你處理工作、日常事務、創作與生活裡的各種小任務。你可以把 Claude Code、Codex 與 GitHub Copilot 當成不同性格的夥伴養在一起，替每位成員配置獨立空間與技能集，並在同一個貓咪主題的溫馨介面裡陪伴它們。
+KittyCrew 是一個可愛、以本地優先為核心的 AI 寵物與夥伴之家。它們不只是陪伴你，也能幫助你處理工作、日常事務、創作與生活裡的各種小任務。你可以把 Claude Code、Codex、GitHub Copilot、Kimi Code 與 OpenCode 當成不同性格的夥伴養在一起，替每位成員配置獨立空間與技能集，並在同一個貓咪主題的溫馨介面裡陪伴它們。
 
 ![KittyCrew homepage](../../assets/homepage.png)
 
@@ -18,7 +18,7 @@ KittyCrew 是一個可愛、以本地優先為核心的 AI 寵物與夥伴之家
 
 多數 AI 工具看起來都像冷冰冰的功能面板，KittyCrew 則把它變成一個溫馨的共享小家：
 
-- 讓 Claude Code、Codex 與 GitHub Copilot 以不同性格的夥伴身份住在一起。
+- 讓 Claude Code、Codex、GitHub Copilot、Kimi Code 與 OpenCode 以不同性格的夥伴身份住在一起。
 - 以最多 5 名成員的小隊形式組織你的寵物與夥伴。
 - 為每位成員單獨配置模型、工作目錄與技能白名單。
 - 在同一個介面中保留成員級聊天紀錄、記憶上下文與串流回覆。
@@ -36,7 +36,7 @@ KittyCrew 適合希望把 AI 當成陪伴型夥伴來相處，同時也希望它
 
 ### 不同性格的 AI 夥伴
 
-- 支援 Claude Code、Codex 與 GitHub Copilot 成員。
+- 支援 Claude Code、Codex、GitHub Copilot、Kimi Code 與 OpenCode 成員。
 - 執行時自動偵測本地 provider CLI。
 - 支援以成員為單位持久化模型選擇，讓每位夥伴保有自己的風格與做事方式。
 
@@ -80,7 +80,7 @@ PYTHONPATH=src python -m kittycrew
 KittyCrew 將 FastAPI Web 應用與透過 `a2a-sdk` 暴露的 provider 適配層結合在一起。
 
 - Web UI 負責 crew、member、聊天狀態與本地持久化。
-- Provider 適配器負責橋接 Claude Code、Codex 與 GitHub Copilot CLI。
+- Provider 適配器負責橋接 Claude Code、Codex、GitHub Copilot、Kimi Code 與 OpenCode CLI。
 - 每位成員都會映射到帶有獨立執行設定的隔離會話紀錄。
 - 串流輸出會即時回傳到介面中，讓每位夥伴都像真實地陪在你身邊。
 
